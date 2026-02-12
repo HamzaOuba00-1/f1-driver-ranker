@@ -14,16 +14,12 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'f1-driver-ranker-frontend' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('f1-driver-ranker-frontend');
-  });
-
-  it('should render title', () => {
+  it('should render app title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
+
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, f1-driver-ranker-frontend');
+    expect(compiled.querySelector('h1')?.textContent)
+      .toContain('F1 Driver Ranker');
   });
 });
