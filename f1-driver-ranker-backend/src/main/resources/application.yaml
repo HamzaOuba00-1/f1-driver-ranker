@@ -1,3 +1,44 @@
+server:
+  port: 8080
+
+app:
+  cors:
+    allowed-origins:
+      - "http://localhost:4200"
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - Authorization
+      - Content-Type
+      - Accept
+    exposed-headers:
+      - Location
+    allow-credentials: true
+    max-age: 3600
+
 spring:
   application:
     name: f1-driver-ranker-backend
+
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=10_000,expireAfterWrite=1h
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
