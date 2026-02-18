@@ -42,3 +42,17 @@ management:
 logging:
   level:
     root: INFO
+
+
+provider:
+  jolpica:
+    base-url: "https://api.jolpi.ca/ergast/f1"
+
+http:
+  client:
+    connect-timeout: 2s
+    read-timeout: 5s
+
+cache:
+  drivers:
+    ttl: 24h
