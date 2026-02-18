@@ -1,0 +1,44 @@
+.picker { display: block; max-width: 720px; }
+.label { display: block; font-weight: 600; margin-bottom: 8px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border: 1px solid #ddd; border-radius: 999px;
+  background: #fafafa;
+}
+.chip-x {
+  border: 0; background: transparent; cursor: pointer;
+  font-size: 16px; line-height: 1;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.item {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-top: 1px solid #f1f1f1;
+  background: #fff;
+}
+.item:first-child { border-top: 0; }
+.item.active { background: #f6f6f6; }
+
+.name { font-weight: 600; }
+.meta { font-size: 12px; color: #666; margin-top: 2px; }
+.id { color: #888; }
+
+.hint { margin-top: 10px; font-size: 13px; color: #666; }

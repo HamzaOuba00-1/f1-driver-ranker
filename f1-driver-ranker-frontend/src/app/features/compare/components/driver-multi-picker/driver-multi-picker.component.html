@@ -1,0 +1,40 @@
+<section class="picker">
+  <label class="label">Drivers</label>
+
+  <div class="chips" *ngIf="selected.length">
+    <span class="chip" *ngFor="let d of selected; trackBy: trackById">
+      {{ d.fullName }}
+      <button type="button" class="chip-x" (click)="remove(d.id)" aria-label="Remove driver">×</button>
+    </span>
+  </div>
+
+  <input
+    class="input"
+    type="text"
+    [formControl]="queryCtrl"
+    placeholder="Type a driver name (e.g., ham, ver, alo)..."
+    autocomplete="off"
+    spellcheck="false"
+    (keydown)="onKeyDown($event)"
+  />
+
+  <ul class="list" *ngIf="queryCtrl.value.trim().length >= 2 && suggestions.length">
+    <li
+      class="item"
+      *ngFor="let s of suggestions; let i = index; trackBy: trackById"
+      [class.active]="i === highlightedIndex"
+      (click)="pickAt(i)"
+    >
+      <div class="name">{{ s.fullName }}</div>
+      <div class="meta">
+        <span *ngIf="s.nationality">{{ s.nationality }}</span>
+        <span *ngIf="s.firstSeason"> • {{ s.firstSeason }}–{{ s.lastSeason ?? 'present' }}</span>
+        <span class="id"> • {{ s.id }}</span>
+      </div>
+    </li>
+  </ul>
+
+  <div class="hint" *ngIf="queryCtrl.value.trim().length >= 2 && !suggestions.length">
+    No matches.
+  </div>
+</section>
