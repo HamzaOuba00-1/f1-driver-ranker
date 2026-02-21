@@ -1,34 +1,68 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DriverMultiPickerComponent } from './components/driver-multi-picker/driver-multi-picker.component';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
+
 import { DriverSuggestion } from '../../core/models/driver.models';
+import { CompareResponse } from '../../core/models/compare.models';
+import { CompareApiService } from '../../core/api/compare-api.service';
+
+import { DriverMultiPickerComponent } from './components/driver-multi-picker/driver-multi-picker.component';
+import { RankingTableComponent } from './components/ranking-table/ranking-table.component';
 
 @Component({
   selector: 'app-compare-page',
   standalone: true,
-  imports: [CommonModule, DriverMultiPickerComponent],
-  template: `
-    <section>
-      <h2>Compare</h2>
-      <p>Phase 1: driver search + multi-select ✅</p>
-
-      <app-driver-multi-picker (selectedChange)="onSelected($event)" />
-
-      <div class="debug" *ngIf="selected.length">
-        <h3>Selected</h3>
-        <pre>{{ selected | json }}</pre>
-      </div>
-    </section>
-  `,
-  styles: [`
-    .debug { margin-top: 16px; padding: 12px; border: 1px dashed #ddd; border-radius: 10px; }
-    pre { overflow: auto; }
-  `]
+  imports: [CommonModule, ReactiveFormsModule, DriverMultiPickerComponent, RankingTableComponent],
+  templateUrl: './compare.page.html',
+  styleUrl: './compare.page.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ComparePage {
   selected: DriverSuggestion[] = [];
 
+  readonly fromCtrl = new FormControl<number | null>(2007);
+  readonly toCtrl = new FormControl<number | null>(2014);
+
+  private readonly run$ = new BehaviorSubject<void>(undefined);
+
+  loading = false;
+  errorMsg: string | null = null;
+
+  readonly compare$ = this.run$.pipe(
+    tap(() => {
+      this.loading = true;
+      this.errorMsg = null;
+    }),
+    switchMap(() => {
+      const ids = this.selected.map(d => d.id);
+      const from = this.fromCtrl.value ?? undefined;
+      const to = this.toCtrl.value ?? undefined;
+
+      if (ids.length < 2) {
+        this.loading = false;
+        return of<CompareResponse | null>(null);
+      }
+
+      return this.compareApi.compare(ids, from, to).pipe(
+        tap(() => (this.loading = false)),
+        catchError(err => {
+          this.loading = false;
+          this.errorMsg = err?.error?.message ?? 'Compare failed';
+          return of<CompareResponse | null>(null);
+        })
+      );
+    })
+  );
+
+  constructor(private readonly compareApi: CompareApiService) {}
+
   onSelected(list: DriverSuggestion[]): void {
     this.selected = list;
+  }
+
+  runCompare(): void {
+    this.run$.next();
   }
 }

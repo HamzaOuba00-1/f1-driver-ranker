@@ -1,0 +1,25 @@
+<table class="table" *ngIf="ranking.length; else empty">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Driver</th>
+      <th>Races</th>
+      <th>Wins</th>
+      <th>Podiums</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let r of ranking; trackBy: trackByDriverId">
+      <td>{{ r.rank }}</td>
+      <td>{{ nameOf(r.driverId) }}</td>
+      <td>{{ r.races }}</td>
+      <td>{{ r.wins }}</td>
+      <td>{{ r.podiums }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<ng-template #empty>
+  <div class="empty">No comparison yet.</div>
+</ng-template>

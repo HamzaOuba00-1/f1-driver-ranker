@@ -1,0 +1,36 @@
+<section>
+  <h2>Compare</h2>
+  <p>Phase 3: courses-only baseline stats ✅</p>
+
+  <app-driver-multi-picker (selectedChange)="onSelected($event)"></app-driver-multi-picker>
+
+  <div class="controls">
+    <label>
+      From
+      <input type="number" [formControl]="fromCtrl" min="1950" />
+    </label>
+
+    <label>
+      To
+      <input type="number" [formControl]="toCtrl" min="1950" />
+    </label>
+
+    <button type="button" (click)="runCompare()" [disabled]="selected.length < 2 || loading">
+      {{ loading ? 'Loading…' : 'Compare' }}
+    </button>
+  </div>
+
+  <div class="error" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+  <ng-container *ngIf="compare$ | async as compare">
+    <div *ngIf="compare" class="meta">
+      Period used: {{ compare.fromSeason }} → {{ compare.toSeason }}
+    </div>
+
+    <app-ranking-table
+      *ngIf="compare"
+      [ranking]="compare.ranking"
+      [selectedDrivers]="selected"
+    />
+  </ng-container>
+</section>
