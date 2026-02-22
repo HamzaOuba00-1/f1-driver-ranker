@@ -59,4 +59,34 @@ public class JolpicaClient {
             return def;
         }
     }
+
+
+    @Cacheable(cacheNames = "jolpica.drivers.search", key = "'given:' + #q")
+    public List<JolpicaDtos.Driver> searchDriversByGivenName(String q) {
+        return searchDrivers("givenName", q);
+    }
+
+    @Cacheable(cacheNames = "jolpica.drivers.search", key = "'family:' + #q")
+    public List<JolpicaDtos.Driver> searchDriversByFamilyName(String q) {
+        return searchDrivers("familyName", q);
+    }
+
+    private List<JolpicaDtos.Driver> searchDrivers(String param, String q) {
+        JolpicaDtos.DriversResponse resp = restClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/drivers.json")
+                        .queryParam(param, q)
+                        .queryParam("limit", 30)
+                        .queryParam("offset", 0)
+                        .build())
+                .retrieve()
+                .body(JolpicaDtos.DriversResponse.class);
+
+        if (resp == null || resp.mrData() == null || resp.mrData().driverTable() == null) {
+            return List.of();
+        }
+
+        List<JolpicaDtos.Driver> drivers = resp.mrData().driverTable().drivers();
+        return drivers == null ? List.of() : drivers;
+    }
 }

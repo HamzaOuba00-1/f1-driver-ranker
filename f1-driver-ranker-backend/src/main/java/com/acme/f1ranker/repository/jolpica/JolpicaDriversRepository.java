@@ -2,7 +2,6 @@ package com.acme.f1ranker.repository.jolpica;
 
 import com.acme.f1ranker.repository.DriversRepository;
 import java.text.Normalizer;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.context.annotation.Primary;
@@ -20,12 +19,20 @@ public class JolpicaDriversRepository implements DriversRepository {
 
     @Override
     public List<DriverSuggestion> searchByQuery(String query, int limit) {
-        String q = normalize(query);
+        String q = query == null ? "" : query.trim();
+        if (q.length() < 2) return List.of();
 
-        return jolpicaClient.fetchAllDrivers().stream()
-                .map((JolpicaDtos.Driver d) -> JolpicaMapper.toSuggestion(d))
-                .filter(d -> normalize(d.id()).contains(q) || normalize(d.fullName()).contains(q))
-                .sorted(Comparator.comparingInt((DriverSuggestion d) -> score(d, q)).reversed())
+        var byGiven = jolpicaClient.searchDriversByGivenName(q);
+        var byFamily = jolpicaClient.searchDriversByFamilyName(q);
+
+        return java.util.stream.Stream.concat(byGiven.stream(), byFamily.stream())
+                .map(JolpicaMapper::toSuggestion)
+                .collect(java.util.stream.Collectors.toMap(
+                        DriverSuggestion::id,
+                        s -> s,
+                        (a, b) -> a
+                ))
+                .values().stream()
                 .limit(limit)
                 .toList();
     }
