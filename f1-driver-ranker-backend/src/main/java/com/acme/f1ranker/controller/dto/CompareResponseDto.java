@@ -10,8 +10,21 @@ public record CompareResponseDto(
     public record RankingEntryDto(
             int rank,
             String driverId,
+
+            // raw aggregates
             int races,
             int wins,
-            int podiums
+            int podiums,
+            int dnfs,
+
+            // features (0..1)
+            double winRate,
+            double podiumRate,
+            double dnfRate,
+
+            // normalized (0..1)
+            double winRateNorm,
+            double podiumRateNorm,
+            double dnfRateNorm
     ) {}
 }
