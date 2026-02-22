@@ -28,7 +28,7 @@ export class DriverMultiPickerComponent implements OnDestroy {
     this.queryCtrl.valueChanges.pipe(
       startWith(this.queryCtrl.value),
       map(v => (v ?? '').trim()),
-      debounceTime(200),
+      debounceTime(450),
       distinctUntilChanged(),
       switchMap(q => {
         if (q.length < 2) return of([] as DriverSuggestion[]);
@@ -89,5 +89,20 @@ export class DriverMultiPickerComponent implements OnDestroy {
 
   trackById(_: number, d: DriverSuggestion): string {
     return d.id;
+  }
+
+
+  isFocused = false;
+
+  onFocus(): void {
+    this.isFocused = true;
+  }
+
+  onBlur(): void {
+    // petit délai pour permettre le click sur une suggestion avant de fermer
+    setTimeout(() => {
+      this.isFocused = false;
+      this.highlightedIndex = -1;
+    }, 120);
   }
 }

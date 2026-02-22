@@ -15,10 +15,13 @@
     placeholder="Type a driver name (e.g., ham, ver, alo)..."
     autocomplete="off"
     spellcheck="false"
+    (focus)="onFocus()"
+    (blur)="onBlur()"
     (keydown)="onKeyDown($event)"
   />
 
-  <ul class="list" *ngIf="queryCtrl.value.trim().length >= 2 && suggestions.length">
+  <ul class="list"
+    *ngIf="isFocused && queryCtrl.value.trim().length >= 2 && suggestions.length">
     <li
       class="item"
       *ngFor="let s of suggestions; let i = index; trackBy: trackById"
@@ -34,7 +37,8 @@
     </li>
   </ul>
 
-  <div class="hint" *ngIf="queryCtrl.value.trim().length >= 2 && !suggestions.length">
+  <div class="hint"
+     *ngIf="isFocused && queryCtrl.value.trim().length >= 2 && !suggestions.length">
     No matches.
   </div>
 </section>
