@@ -28,6 +28,8 @@ spring:
   cache:
     type: caffeine
     caffeine:
+      # Cache Spring (@Cacheable) - générique
+      # (les caches jolpica.* utiliseront cette politique)
       spec: maximumSize=10_000,expireAfterWrite=1h
 
 management:
@@ -43,7 +45,6 @@ logging:
   level:
     root: INFO
 
-
 provider:
   jolpica:
     base-url: "https://api.jolpi.ca/ergast/f1"
@@ -55,4 +56,13 @@ http:
 
 cache:
   drivers:
+    # TTL métier pour le snapshot in-memory (sert aussi de fréquence de refresh)
+    # Spring Boot accepte des Durations comme 24h, 12h, 30m, 10s, etc.
     ttl: 24h
+
+warmup:
+  executor:
+    # Optionnel: warm-up async pour ne pas ralentir le startup
+    core-pool-size: 1
+    max-pool-size: 1
+    thread-name-prefix: "warmup-"

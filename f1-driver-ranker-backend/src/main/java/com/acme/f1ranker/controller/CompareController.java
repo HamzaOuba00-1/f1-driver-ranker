@@ -1,16 +1,14 @@
 package com.acme.f1ranker.controller;
 
 import com.acme.f1ranker.controller.dto.CompareResponseDto;
-import com.acme.f1ranker.domain.engine.Normalizer;
-import com.acme.f1ranker.domain.model.DriverFeatures;
-import com.acme.f1ranker.domain.model.NormalizedFeatures;
+import com.acme.f1ranker.domain.engine.RankingEngine;
+import com.acme.f1ranker.domain.model.MetricContribution;
 import com.acme.f1ranker.service.CompareService;
+import com.acme.f1ranker.service.scoring.ScoringMode;
+import com.acme.f1ranker.service.scoring.StrategyRegistry;
 import jakarta.validation.constraints.Size;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,10 +18,13 @@ import org.springframework.web.bind.annotation.*;
 public class CompareController {
 
     private final CompareService compareService;
-    private final Normalizer normalizer = new Normalizer();
+    private final StrategyRegistry strategyRegistry;
 
-    public CompareController(CompareService compareService) {
+    private final RankingEngine rankingEngine = new RankingEngine();
+
+    public CompareController(CompareService compareService, StrategyRegistry strategyRegistry) {
         this.compareService = compareService;
+        this.strategyRegistry = strategyRegistry;
     }
 
     @GetMapping
@@ -32,28 +33,31 @@ public class CompareController {
             @Size(min = 3, max = 200, message = "drivers param too long")
             String driversCsv,
             @RequestParam(value = "from", required = false) Integer from,
-            @RequestParam(value = "to", required = false) Integer to
+            @RequestParam(value = "to", required = false) Integer to,
+            @RequestParam(value = "mode", required = false) ScoringMode mode
     ) {
         List<String> driverIds = parseDrivers(driversCsv);
 
-        var result = compareService.compare(driverIds, from, to);
+        var strategy = strategyRegistry.getOrDefault(mode);
 
-        // collect features list (already sorted by CompareService)
-        List<DriverFeatures> featuresList = result.ranking().stream()
-                .map(CompareService.RankedFeatures::features)
-                .toList();
+        // We still need from/to used by CompareService; re-use existing result for period.
+        var baseline = compareService.compare(driverIds, from, to);
+        var features = baseline.ranking().stream().map(CompareService.RankedFeatures::features).toList();
 
-        List<NormalizedFeatures> normalized = normalizer.normalize(featuresList);
-        Map<String, NormalizedFeatures> normById = normalized.stream()
-                .collect(Collectors.toMap(NormalizedFeatures::driverId, Function.identity()));
+        var ranked = rankingEngine.rank(features, strategy);
 
-        List<CompareResponseDto.RankingEntryDto> ranking = result.ranking().stream()
-                .map(r -> {
-                    DriverFeatures f = r.features();
-                    NormalizedFeatures n = normById.get(f.driverId());
+        List<CompareResponseDto.RankingEntryDto> rankingDto = ranked.ranking().stream()
+                .map(re -> {
+                    var e = re.entry();
+                    var f = e.features();
+                    var n = e.normalized();
+
+                    List<CompareResponseDto.MetricContributionDto> contributions = e.contributions().stream()
+                            .map(CompareController::toDto)
+                            .toList();
 
                     return new CompareResponseDto.RankingEntryDto(
-                            r.rank(),
+                            re.rank(),
                             f.driverId(),
                             f.races(),
                             f.wins(),
@@ -64,12 +68,24 @@ public class CompareController {
                             f.dnfRate(),
                             n.winRateNorm(),
                             n.podiumRateNorm(),
-                            n.dnfRateNorm()
+                            n.dnfRateNorm(),
+                            e.finalScore(),
+                            contributions
                     );
                 })
                 .toList();
 
-        return new CompareResponseDto(result.fromSeason(), result.toSeason(), ranking);
+        return new CompareResponseDto(strategy.mode().name(), baseline.fromSeason(), baseline.toSeason(), rankingDto);
+    }
+
+    private static CompareResponseDto.MetricContributionDto toDto(MetricContribution c) {
+        return new CompareResponseDto.MetricContributionDto(
+                c.metricId().name(),
+                c.rawValue(),
+                c.normalizedValue(),
+                c.weight(),
+                c.contribution()
+        );
     }
 
     private static List<String> parseDrivers(String csv) {
