@@ -6,6 +6,7 @@
       <th>Races</th>
       <th>Wins</th>
       <th>Podiums</th>
+      <th>Score</th>
     </tr>
   </thead>
 
@@ -16,6 +17,7 @@
       <td>{{ r.races }}</td>
       <td>{{ r.wins }}</td>
       <td>{{ r.podiums }}</td>
+      <td>{{ r.finalScore | number: '1.3-3' }}</td>
     </tr>
   </tbody>
 </table>

@@ -1,6 +1,6 @@
 <section>
   <h2>Compare</h2>
-  <p>Phase 3: courses-only baseline stats ✅</p>
+  <p>Phase 5: scoring + explainability ✅</p>
 
   <app-driver-multi-picker (selectedChange)="onSelected($event)"></app-driver-multi-picker>
 
@@ -15,6 +15,13 @@
       <input type="number" [formControl]="toCtrl" min="1950" />
     </label>
 
+    <label>
+      Mode
+      <select [formControl]="modeCtrl">
+        <option *ngFor="let m of modes" [value]="m.id">{{ m.label }}</option>
+      </select>
+    </label>
+
     <button type="button" (click)="runCompare()" [disabled]="selected.length < 2 || loading">
       {{ loading ? 'Loading…' : 'Compare' }}
     </button>
@@ -24,7 +31,7 @@
 
   <ng-container *ngIf="compare$ | async as compare">
     <div *ngIf="compare" class="meta">
-      Period used: {{ compare.fromSeason }} → {{ compare.toSeason }}
+      Mode: <strong>{{ compare.mode }}</strong> • Period used: {{ compare.fromSeason }} → {{ compare.toSeason }}
     </div>
 
     <app-ranking-table
